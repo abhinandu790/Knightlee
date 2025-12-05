@@ -1,6 +1,11 @@
 # api/urls.py
 from django.urls import path
 from . import views
+from .views import (
+    crime_geojson,
+    blackspot_geojson,  # if you added this too
+)
+
 
 urlpatterns = [
     path("auth/register/", views.register, name="register"),
@@ -18,4 +23,9 @@ urlpatterns = [
 
     path("user/profile/", views.user_profile, name="user_profile"),
     path("user/profile/update/", views.update_profile, name="update_profile"),
+    path("incidents/geojson/", views.incidents_geojson, name="incidents_geojson"),
+    path("crimes/geojson/", crime_geojson),
+    path("blackspots/geojson/", blackspot_geojson),
+
 ]
+

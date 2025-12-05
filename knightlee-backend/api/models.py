@@ -38,3 +38,11 @@ class SOSAlert(models.Model):
 
     def __str__(self):
         return f"SOS by {self.user.username} at {self.timestamp}"
+class BlackSpot(models.Model):
+    name = models.CharField(max_length=200)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    severity = models.IntegerField(default=1)  # 1-5 rating
+
+    def __str__(self):
+        return self.name

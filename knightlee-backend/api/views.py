@@ -152,3 +152,57 @@ def update_profile(request):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def incidents_geojson(request):
+    incidents = Incident.objects.all()
+    features = []
+    for inc in incidents:
+        features.append({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [inc.longitude, inc.latitude],
+            },
+            "properties": {
+                "incident_type": inc.incident_type,
+                "upvotes": inc.upvotes,
+            },
+        })
+    return Response({
+        "type": "FeatureCollection",
+        "features": features,
+    })
+@api_view(["GET"])
+def crime_geojson(request):
+    incidents = Incident.objects.all()
+    return Response({
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [i.longitude, i.latitude]},
+                "properties": {"weight": 1}
+            }
+            for i in incidents
+        ]
+    })
+
+
+@api_view(["GET"])
+def blackspot_geojson(request):
+    spots = BlackSpot.objects.all()
+    return Response({
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [s.longitude, s.latitude]},
+                "properties": {"name": s.name, "severity": s.severity}
+            }
+            for s in spots
+        ]
+    })
