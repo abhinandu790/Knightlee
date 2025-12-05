@@ -1,24 +1,15 @@
-// // import React from "react";
-// import ReactDOM from "react-dom/client";
-// import App from "./App";
-// import "mapbox-gl/dist/mapbox-gl.css";  // ⬅ REQUIRED
-// import "./index.css";
-
-// ReactDOM.createRoot(document.getElementById("root")!).render(
-//   <React.StrictMode>
-//     <App />
-//   </React.StrictMode>
-// );
-
-
+// src/main.tsx or src/index.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import "mapbox-gl/dist/mapbox-gl.css";  // ⬅ REQUIRED
+import "mapbox-gl/dist/mapbox-gl.css";
 import "./index.css";
+import { AuthProvider } from "./context/AuthContext";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
