@@ -15,7 +15,6 @@ export default function MapScreen() {
   const [selectedRoute, setSelectedRoute] = useState<any | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showSOSModal, setShowSOSModal] = useState(false);
-  
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -45,16 +44,16 @@ export default function MapScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#CCF5E9] to-[#E9FFF7] flex flex-col items-center px-6 py-10">
-      {/* Navbar */}
-      <Navbar />
+    <div className=" top-8 relative w-full h-screen bg-gradient-to-b from-[#CCF5E9] to-[#E9FFF7]">
+      {/* Navbar at the top, full width */}
+      <Navbar />a
 
       {/* Search card (hidden if summary is showing) */}
       {!selectedRoute && (
-        <div className="absolute top-24 left-4 right-4 z-20 max-w-md mx-auto top-50 ">
+        <div className="absolute top-24 left-4 right-4 z-20 max-w-md mx-auto">
           <RouteSearchCard
             onSearch={handleSearchRoute}
-            buttonColor="#10B985"   // <- apply new green shade
+            buttonColor="#10B985" // <- apply new green shade
           />
         </div>
       )}
@@ -63,10 +62,7 @@ export default function MapScreen() {
       {selectedRoute && (
         <div className="absolute top-24 left-4 right-4 z-30 max-w-md mx-auto">
           {/* Click outside to close */}
-          <div
-            className="fixed inset-0 z-20"
-            onClick={handleOutsideClick}
-          />
+          <div className="fixed inset-0 z-20" onClick={handleOutsideClick} />
 
           <div className="relative z-30">
             <button
@@ -80,7 +76,7 @@ export default function MapScreen() {
         </div>
       )}
 
-      {/* Map */}
+      {/* Map fills the screen behind UI */}
       <div ref={mapContainer} className="w-full h-full" />
     </div>
   );

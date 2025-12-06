@@ -115,6 +115,7 @@ import HomeLanding from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
+import HeatMap from "./pages/CrimeHeatmap"
 import KnightleeMap from "./components/KnightleeMap";
 import CrimeHeatmap from "./components/crimeHeatmap"; // ⬅️ your heatmap component
 
@@ -206,6 +207,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <SafePointsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Crime Heatmap page */}
+      <Route
+        path="/heatmap"
+        element={
+          <ProtectedRoute>
+            <HeatMap />
           </ProtectedRoute>
         }
       />
