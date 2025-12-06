@@ -14,8 +14,8 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password); // 🔥 Calls API, stores access + refresh tokens, sets isAuthenticated
-      navigate("/home"); // 🔥 Goes to protected dashboard/map
+      await login(email, password); 
+      navigate("/home"); 
     } catch (error) {
       console.error("Login failed:", error);
       alert("Invalid email or password.");

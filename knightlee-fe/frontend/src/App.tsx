@@ -1,16 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "mapbox-gl/dist/mapbox-gl.css";
-import KnightleeLanding from "./components/KnightleeMap"; 
+
+import MapScreen from "./pages/MapScreen";
+import HelplinePage from "./pages/HelplinePage";
+import SOSPage from "./pages/SOSPage";
+import SafePointsPage from "./pages/SafePointsPage";
 
 // Pages / Components
-import HomeLanding from "./pages/Landing"; 
+import HomeLanding from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import KnightleeMap from "./components/KnightleeMap";
 
-// 🔒 Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -26,56 +29,75 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { logout } = useAuth();
 
   return (
     <Routes>
-      {/* ⭐ Default page (Landing) */}
-      <Route
-        path="/"
-        element={<HomeLanding />}
-      />
+      {/* Public landing */}
+      <Route path="/" element={<HomeLanding />} />
 
-      {/* Auth pages */}
-      <Route
-        path="/login"
-        // element={!isAuthenticated ? <Login /> : <Navigate to="/home" replace />}
-        element={<Login/>}
-      />
-      <Route
-        path="/signup"
-        element={<Signup/>}
-        // element={!isAuthenticated ? <Signup /> : <Navigate to="/home" replace />}
-      />
+      {/* Auth */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-      {/* Home + KnightleeMap after login */}
-      {/* <Route
+      {/* Protected main home */}
+      <Route
         path="/home"
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Map screens */}
+      <Route
+        path="/mapscreen"
+        element={
+          <ProtectedRoute>
+            <MapScreen />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/map"
+        element={
+          <ProtectedRoute>
             <KnightleeMap onLogout={logout} />
           </ProtectedRoute>
         }
-      /> */}
+      />
+
+      {/* Helpline page */}
       <Route
-  path="/home"
-  element={
-    <ProtectedRoute>
-      <Home />
-    </ProtectedRoute>
-  }
-/>
+        path="/helpline"
+        element={
+          <ProtectedRoute>
+            <HelplinePage />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/map"
-  element={
-    <ProtectedRoute>
-      <KnightleeMap onLogout={logout} />
-    </ProtectedRoute>
-  }
-/>
+      {/* SOS page */}
+      <Route
+        path="/sos"
+        element={
+          <ProtectedRoute>
+            <SOSPage />
+          </ProtectedRoute>
+        }
+      />
 
+      {/* Safe Points page */}
+      <Route
+        path="/safepoints"
+        element={
+          <ProtectedRoute>
+            <SafePointsPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 fallback */}
       <Route
@@ -90,7 +112,6 @@ const AppRoutes = () => {
   );
 };
 
-// 🌍 Main App Wrapper
 export default function App() {
   return (
     <AuthProvider>
