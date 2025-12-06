@@ -105,7 +105,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-// Components / Pages
+import MapScreen from "./pages/MapScreen";
+import HelplinePage from "./pages/HelplinePage";
+import SOSPage from "./pages/SOSPage";
+import SafePointsPage from "./pages/SafePointsPage";
+
+// Pages / Components
 import HomeLanding from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -113,7 +118,6 @@ import Home from "./pages/Home";
 import KnightleeMap from "./components/KnightleeMap";
 import CrimeHeatmap from "./components/crimeHeatmap"; // ⬅️ your heatmap component
 
-// 🔒 Protected Route Wrapper
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -128,27 +132,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-const AppRoutes: React.FC = () => {
-  const { isAuthenticated, logout } = useAuth();
+const AppRoutes = () => {
+  const { logout } = useAuth();
 
   return (
     <Routes>
-      {/* ⭐ Default page (Landing) */}
+      {/* Public landing */}
       <Route path="/" element={<HomeLanding />} />
 
-      {/* Auth pages */}
-      <Route
-        path="/login"
-        // element={!isAuthenticated ? <Login /> : <Navigate to="/home" replace />}
-        element={<Login />}
-      />
-      <Route
-        path="/signup"
-        element={<Signup />}
-        // element={!isAuthenticated ? <Signup /> : <Navigate to="/home" replace />}
-      />
+      {/* Auth */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-      {/* Home after login */}
+      {/* Protected main home */}
       <Route
         path="/home"
         element={
@@ -158,7 +154,16 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Knightlee map page */}
+      {/* Map screens */}
+      <Route
+        path="/mapscreen"
+        element={
+          <ProtectedRoute>
+            <MapScreen />
+          </ProtectedRoute>
+        }
+      />
+
       <Route
         path="/map"
         element={
@@ -168,15 +173,32 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* 🔥 New Crime Heatmap route */}
+      {/* Helpline page */}
       <Route
-        path="/heatmap"
+        path="/helpline"
         element={
           <ProtectedRoute>
-            <div className="w-full h-full">
-              <h1 className="text-xl font-bold px-4 pt-4">Crime Heatmap</h1>
-              <CrimeHeatmap />
-            </div>
+            <HelplinePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* SOS page */}
+      <Route
+        path="/sos"
+        element={
+          <ProtectedRoute>
+            <SOSPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Safe Points page */}
+      <Route
+        path="/safepoints"
+        element={
+          <ProtectedRoute>
+            <SafePointsPage />
           </ProtectedRoute>
         }
       />
@@ -194,8 +216,7 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-// 🌍 Main App Wrapper
-const App: React.FC = () => {
+export default function App() {
   return (
     <AuthProvider>
       <Router>
