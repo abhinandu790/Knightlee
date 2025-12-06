@@ -149,62 +149,86 @@ def get_route(request):
 # ROUTE ANALYZE WITH BLACKSPOTS
 # =========================
 
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@authentication_classes([])   
+@permission_classes([AllowAny])
+
 def route_analyze(request):
-    """
-    GET /api/route-analyze/?start=lng,lat&end=lng,lat
+    start = request.GET.get("start")
+    end = request.GET.get("end")
 
-    Uses Mapbox + blackspot analysis.
-    """
-    try:
-        start = request.query_params.get("start")
-        end = request.query_params.get("end")
+    if not start or not end:
+        return Response({"detail": "start and end are required"}, status=400)
 
-        if not start or not end:
-            return Response(
-                {"detail": "start and end are required as 'lng,lat'"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    # Dummy response for now – just to test
+    return Response(
+        {
+            "distance_km": 12.4,
+            "safety_score": 82,
+            "blackspots_detected": True,
+            "message": "Route analyze working ✅",
+            "start": start,
+            "end": end,
+        },
+        status=200,
+    )
 
-        try:
-            start_lng, start_lat = [float(x) for x in start.split(",")]
-            end_lng, end_lat = [float(x) for x in end.split(",")]
-        except ValueError:
-            return Response(
-                {"detail": "Invalid start/end format. Use 'lng,lat'."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+   
+# def route_analyze(request):
+#     """
+#     GET /api/route-analyze/?start=lng,lat&end=lng,lat
 
-        # 1) Mapbox route
-        route = fetch_route_from_mapbox(start_lng, start_lat, end_lng, end_lat)
-        geometry = route["geometry"]  # GeoJSON LineString
-        distance_km = route["distance"] / 1000.0
-        duration_min = route["duration"] / 60.0  # not used but available
+#     Uses Mapbox + blackspot analysis.
+#     """
+#     try:
+#         start = request.query_params.get("start")
+#         end = request.query_params.get("end")
 
-        # 2) Analyze blackspots using SQLite data
-        summary, blackspots_geojson = analyze_route_blackspots(geometry, buffer_km=1.0)
-        summary["route_distance_km"] = round(distance_km, 2)
+#         if not start or not end:
+#             return Response(
+#                 {"detail": "start and end are required as 'lng,lat'"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
 
-        safety_score = summary["safety_percentage"]
+#         try:
+#             start_lng, start_lat = [float(x) for x in start.split(",")]
+#             end_lng, end_lat = [float(x) for x in end.split(",")]
+#         except ValueError:
+#             return Response(
+#                 {"detail": "Invalid start/end format. Use 'lng,lat'."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
 
-        data = {
-            "route": {
-                "geometry": geometry,
-                "distance": route["distance"],
-                "duration": route["duration"],
-            },
-            "summary": summary,
-            "blackspots_geojson": blackspots_geojson,
-            "safety_score": safety_score,
-        }
-        return Response(data)
-    except Exception as e:
-        print("route_analyze error:", e)
-        return Response(
-            {"detail": "Failed to analyze route"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+#         # 1) Mapbox route
+#         route = fetch_route_from_mapbox(start_lng, start_lat, end_lng, end_lat)
+#         geometry = route["geometry"]  # GeoJSON LineString
+#         distance_km = route["distance"] / 1000.0
+#         duration_min = route["duration"] / 60.0  # not used but available
+
+#         # 2) Analyze blackspots using SQLite data
+#         summary, blackspots_geojson = analyze_route_blackspots(geometry, buffer_km=1.0)
+#         summary["route_distance_km"] = round(distance_km, 2)
+
+#         safety_score = summary["safety_percentage"]
+
+#         data = {
+#             "route": {
+#                 "geometry": geometry,
+#                 "distance": route["distance"],
+#                 "duration": route["duration"],
+#             },
+#             "summary": summary,
+#             "blackspots_geojson": blackspots_geojson,
+#             "safety_score": safety_score,
+#         }
+#         return Response(data)
+#     except Exception as e:
+#         print("route_analyze error:", e)
+#         return Response(
+#             {"detail": "Failed to analyze route"},
+#             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#         )
 
 
 # =========================

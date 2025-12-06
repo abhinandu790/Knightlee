@@ -1,6 +1,7 @@
 # api/urls.py
 from django.urls import path
 from . import views
+from .views import route_analyze
 
 urlpatterns = [
     # Auth
@@ -10,6 +11,7 @@ urlpatterns = [
     # Routes
     path("route/", views.get_route, name="get_route"),
     path("route-analyze/", views.route_analyze, name="route-analyze"),
+    path("route-analyze/", route_analyze, name="route-analyze"),
     path("roadsegment/<int:id>/", views.road_segment, name="road_segment"),
 
     # Incidents
