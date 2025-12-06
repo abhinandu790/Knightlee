@@ -163,7 +163,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+     <Route
+        path="/heatmap"
+        element={
+          <ProtectedRoute>
+            <CrimeHeatmap />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/map"
         element={
@@ -226,4 +233,4 @@ export default function App() {
   );
 };
 
-export default App;
+

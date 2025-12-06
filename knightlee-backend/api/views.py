@@ -1014,3 +1014,35 @@ def blackspot_geojson(request):
             for s in BlackSpot.objects.all()
         ]
     })
+@api_view(["GET"])
+@authentication_classes([])   
+@permission_classes([AllowAny])
+def crime_heatmap_geojson(request):
+    """Return crime data as GeoJSON for heatmap display."""
+    features = []
+
+    for obj in CrimeHeatData.objects.all():
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    "city": obj.city,
+                    "crime_description": obj.crime_description,
+                    "crime_domain": obj.crime_domain,
+                    "victim_age": obj.victim_age,
+                    "weapon_used": obj.weapon_used,
+                    "weight": 1  # required for heatmap intensity
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [obj.longitude, obj.latitude],
+                },
+            }
+        )
+
+    return Response(
+        {
+            "type": "FeatureCollection",
+            "features": features,
+        }
+    )

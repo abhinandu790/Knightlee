@@ -1,235 +1,7 @@
-
-// import React, { useEffect, useRef, useState } from "react";
-// import mapboxgl from "mapbox-gl";
-// import api from "../api/client";
-
-// mapboxgl.accessToken =
-//   "pk.eyJ1IjoiYWJoaWFiaGluYW5kYW5hMDkiLCJhIjoiY21pc3E3Y3ZrMDB0NTNmc2J6Z2RhZXI4NyJ9.nsB4sflxG_e3KK2DYWwpqg";
-
-// interface BackendRouteAnalyze {
-//   distance_km: number;
-//   safety_score: number;
-//   blackspots_detected: number;
-//   message: string;
-//   start: string;
-//   end: string;
-// }
-
-// const KnightleeMap: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-//   const mapContainer = useRef<HTMLDivElement | null>(null);
-//   const mapRef = useRef<mapboxgl.Map | null>(null);
-
-//   const [start, setStart] = useState("");
-//   const [end, setEnd] = useState("");
-//   const [analysis, setAnalysis] = useState<BackendRouteAnalyze | null>(null);
-//   const [infoMsg, setInfoMsg] = useState<string | null>(
-//     "Enter start & destination, then click Analyze Route."
-//   );
-//   const [loading, setLoading] = useState(false);
-
-//   // ---------- Convert input to coordinates ----------
-//   const resolveToCoords = async (value: string) => {
-//     const trimmed = value.trim();
-//     if (!trimmed) throw new Error("Empty value");
-
-//     if (trimmed.includes(",")) {
-//       const [lngStr, latStr] = trimmed.split(",");
-//       const lng = Number(lngStr);
-//       const lat = Number(latStr);
-//       if (!isNaN(lng) && !isNaN(lat)) return { lng, lat };
-//     }
-
-//     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-//       trimmed
-//     )}.json?country=in&limit=1&autocomplete=true&access_token=${mapboxgl.accessToken}`;
-
-//     const res = await fetch(url);
-//     const data = await res.json();
-
-//     if (!data.features?.length) throw new Error("Place not found");
-
-//     const [lng, lat] = data.features[0].center;
-//     return { lng, lat };
-//   };
-
-//   // ---------- Initialize map ----------
-//   useEffect(() => {
-//     if (mapRef.current) return;
-
-//     const map = new mapboxgl.Map({
-//       container: mapContainer.current as HTMLElement,
-//       style: "mapbox://styles/mapbox/dark-v11",
-//       center: [76.2711, 9.9816],
-//       zoom: 12,
-//     });
-
-//     mapRef.current = map;
-
-//     map.on("load", async () => {
-//       try {
-//         // Heatmap
-//         const incidentsRes = await api.get("/incidents/geojson/");
-//         map.addSource("incident-points", {
-//           type: "geojson",
-//           data: incidentsRes.data,
-//         });
-
-//         map.addLayer({
-//           id: "incident-heat",
-//           type: "heatmap",
-//           source: "incident-points",
-//           paint: {
-//             "heatmap-weight": ["+", 1, ["get", "upvotes"]],
-//             "heatmap-radius": 25,
-//             "heatmap-opacity": 0.8,
-//           },
-//         });
-
-//         // Blackspots
-//         const blackspotsRes = await api.get("/blackspots/geojson/");
-//         map.addSource("blackspots", {
-//           type: "geojson",
-//           data: blackspotsRes.data,
-//         });
-
-//         map.addLayer({
-//           id: "blackspots-layer",
-//           type: "circle",
-//           source: "blackspots",
-//           paint: {
-//             "circle-color": [
-//               "case",
-//               [">=", ["get", "severity"], 4],
-//               "#ff0000",
-//               ["==", ["get", "severity"], 3],
-//               "#ff8800",
-//               "#00cc44",
-//             ],
-//             "circle-radius": 8,
-//             "circle-opacity": 0.9,
-//           },
-//         });
-
-//         setInfoMsg("🔥 Map Loaded with Live Safety Data");
-//       } catch {
-//         setInfoMsg("⚠ Error loading map data");
-//       }
-//     });
-//   }, []);
-
-//   // ---------- Call backend ----------
-//   const fetchRouteAndSafety = async () => {
-//     try {
-//       if (!start.trim() || !end.trim()) {
-//         setInfoMsg("⚠ Enter valid start & destination");
-//         return;
-//       }
-
-//       setLoading(true);
-//       setAnalysis(null);
-
-//       const startCoords = await resolveToCoords(start);
-//       const endCoords = await resolveToCoords(end);
-
-//       const startParam = `${startCoords.lng},${startCoords.lat}`;
-//       const endParam = `${endCoords.lng},${endCoords.lat}`;
-
-//       const res = await api.get("/route-analyze/", {
-//         params: { start: startParam, end: endParam },
-//       });
-
-//       console.log("Backend response:", res.data);
-
-//       // Normalize response for card
-//       setAnalysis({
-//         distance_km: res.data.distance_km,
-//         safety_score: res.data.safety_score,
-//         blackspots_detected: res.data.blackspots_detected,
-//         message: res.data.message || "Analysis Completed",
-//         start: res.data.start,
-//         end: res.data.end,
-//       });
-
-//       setInfoMsg("🛣 Route analyzed successfully!");
-//     } catch (err) {
-//       console.error(err);
-//       setInfoMsg("❌ Failed to analyze route");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // ---------- UI ----------
-//   return (
-//     <div className="w-full h-full flex flex-col gap-3 p-4">
-
-//       {/* INPUT SECTION */}
-//       <div className="bg-white p-4 rounded-xl shadow-md space-y-2">
-//         <input
-//           className="w-full px-2 py-2 text-sm border rounded"
-//           placeholder="Start: place or coordinates"
-//           value={start}
-//           onChange={(e) => setStart(e.target.value)}
-//         />
-
-//         <input
-//           className="w-full px-2 py-2 text-sm border rounded"
-//           placeholder="Destination: place or coordinates"
-//           value={end}
-//           onChange={(e) => setEnd(e.target.value)}
-//         />
-
-//         <button
-//           onClick={fetchRouteAndSafety}
-//           disabled={loading}
-//           className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-500 disabled:opacity-50"
-//         >
-//           {loading ? "Analyzing..." : "Analyze Route"}
-//         </button>
-
-//         <p className="text-xs text-gray-600">{infoMsg}</p>
-//       </div>
-
-//       {/* RESULT CARD */}
-//       {analysis && (
-//         <div className="bg-white p-4 rounded-xl shadow-lg border">
-//           <h2 className="font-bold text-gray-700 text-lg mb-2">Route Safety Report 🚦</h2>
-
-//           <p><b>Start:</b> {analysis.start}</p>
-//           <p><b>End:</b> {analysis.end}</p>
-//           <p><b>Distance:</b> {analysis.distance_km} km</p>
-
-//           <p>
-//             <b>Safety Score:</b>{" "}
-//             <span className={
-//               analysis.safety_score > 70
-//                 ? "text-green-600 font-bold"
-//                 : analysis.safety_score > 40
-//                 ? "text-yellow-600 font-bold"
-//                 : "text-red-600 font-bold"
-//             }>
-//               {analysis.safety_score} / 100
-//             </span>
-//           </p>
-
-//           <p><b>Blackspots Found:</b> {analysis.blackspots_detected}</p>
-
-//           <p className="text-sm italic text-gray-500 mt-2">
-//             {analysis.message}
-//           </p>
-//         </div>
-//       )}
-
-//       {/* MAP */}
-//       <div ref={mapContainer} className="w-full h-[500px] rounded-xl shadow-md" />
-//     </div>
-//   );
-// };
-
-// export default KnightleeMap;
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import api from "../api/client";
+import { MapPin, Navigation } from "lucide-react"; // <-- FIXED ICONS
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -241,9 +13,9 @@ const KnightleeMap = () => {
   const [end, setEnd] = useState("");
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [infoMsg, setInfoMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("Enter start & destination to analyze route.");
 
-  // Resolve place → coordinates
+  // Convert place → coordinates using Mapbox geocoder
   const resolveLocation = async (value: string) => {
     if (!value.trim()) return null;
 
@@ -267,7 +39,7 @@ const KnightleeMap = () => {
     };
   };
 
-  // Initialize map
+  // Map initialization
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -312,21 +84,20 @@ const KnightleeMap = () => {
 
         console.log("✔ Map loaded");
       } catch {
-        console.log("Error loading layers");
+        console.log("⚠ Error loading layers");
       }
     });
   }, []);
 
-  // Analyze Route
+  // Button click handler
   const fetchRouteAndSafety = async () => {
     setLoading(true);
-    setInfoMsg("");
 
     const startCoords = await resolveLocation(start);
     const endCoords = await resolveLocation(end);
 
     if (!startCoords || !endCoords) {
-      setInfoMsg("❌ Could not resolve locations.");
+      setInfoMsg("❌ Invalid locations entered.");
       setLoading(false);
       return;
     }
@@ -341,85 +112,161 @@ const KnightleeMap = () => {
 
       console.log("Backend:", res.data);
 
-      // Normalize backend response format
+      // Normalize backend data
       setAnalysis({
-        start: res.data.start ?? startParam,
-        end: res.data.end ?? endParam,
-        distance_km: Number(res.data.distance_km ?? 0),
-        safety_score: Number(res.data.safety_score ?? 0),
-        blackspots_detected: Number(res.data.blackspots_detected ?? 0),
-        message: res.data.message ?? "Route processed.",
+        start: res.data.start,
+        end: res.data.end,
+        distance_km: res.data.distance_km,
+        safety_score: res.data.safety_score,
+        blackspots_detected: res.data.blackspots_detected,
+        message: res.data.message,
       });
 
-      setInfoMsg("✔ Analysis Completed");
+      setInfoMsg("✔ Route analyzed");
     } catch {
-      setInfoMsg("❌ Error analyzing route.");
-    } finally {
-      setLoading(false);
+      setInfoMsg("❌ Failed to analyze route");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="p-4 w-full h-full flex flex-col gap-3">
+    <div className="w-full h-full p-4 space-y-4">
 
-      {/* Input section */}
-      <div className="bg-white p-4 rounded-xl shadow-md space-y-2">
-        <input
-          placeholder="Starting location"
-          className="border rounded px-3 py-2"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-        />
+      {/* INPUT UI */}
+      <div className="bg-white p-4 rounded-xl shadow-md space-y-3">
+        <div className="flex items-center gap-3">
+          <Navigation className="text-green-600 w-5" />
+          <input
+            placeholder="Start location"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            className="flex-1 p-2 border rounded"
+          />
+        </div>
 
-        <input
-          placeholder="Destination"
-          className="border rounded px-3 py-2"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-        />
+        <div className="flex items-center gap-3">
+          <MapPin className="text-red-600 w-5" />
+          <input
+            placeholder="Destination"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+            className="flex-1 p-2 border rounded"
+          />
+        </div>
 
         <button
           onClick={fetchRouteAndSafety}
-          disabled={loading || !start.trim() || !end.trim()}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded disabled:opacity-50"
+          disabled={loading}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
         >
-          {loading ? "Analyzing..." : "Analyze Route"}
+          {loading ? "Analyzing..." : "Find Safe Route"}
         </button>
 
-        <p className="text-gray-500 text-sm">{infoMsg}</p>
+        <p className="text-sm text-gray-600">{infoMsg}</p>
       </div>
 
-      {/* Output Card */}
-      {analysis && (
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
-          <h2 className="text-xl font-bold mb-2">Route Safety Report 🚦</h2>
+      {/* RESULT CARD — FULL WIDTH UI */}
+{analysis && (
+  <div className="w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-10 space-y-6 border border-gray-200 dark:border-gray-700 transition-all duration-300">
 
-          <p><b>Start:</b> {analysis.start}</p>
-          <p><b>End:</b> {analysis.end}</p>
-          <p><b>Distance:</b> {analysis.distance_km} km</p>
+    {/* Header */}
+    <div className="flex items-center justify-between">
+      <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        Route Safety Overview 🚦
+      </h3>
 
-          <p>
-            <b>Safety Score:</b>{" "}
-            <span
-              className={`font-bold ${
-                analysis.safety_score > 70
-                  ? "text-green-600"
-                  : analysis.safety_score > 40
-                  ? "text-yellow-600"
-                  : "text-red-600"
-              }`}
-            >
-              {analysis.safety_score} / 100
-            </span>
-          </p>
+      <div
+        className={`px-5 py-2 text-md rounded-full font-bold shadow ${
+          analysis.safety_score > 70
+            ? "bg-green-100 text-green-700"
+            : analysis.safety_score > 40
+            ? "bg-yellow-100 text-yellow-700"
+            : "bg-red-100 text-red-700"
+        }`}
+      >
+        {
+          analysis.safety_score > 70
+            ? "Safe Route"
+            : analysis.safety_score > 40
+            ? "Moderate Risk"
+            : "High Risk"
+        }
+      </div>
+    </div>
 
-          <p><b>Blackspots Detected:</b> {analysis.blackspots_detected}</p>
-          <p className="text-gray-500 italic mt-2">{analysis.message}</p>
+    {/* Route Info */}
+    <div className="text-xl space-y-2 text-gray-700 dark:text-gray-300">
+      <p><b>Start:</b> {analysis.start}</p>
+      <p><b>Destination:</b> {analysis.end}</p>
+    </div>
+
+    {/* Metrics */}
+    <div className="grid grid-cols-3 gap-8 text-center py-6">
+
+      {/* Distance */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-xl shadow">
+          🚗
         </div>
-      )}
+        <p className="text-4xl font-bold text-gray-900 dark:text-white">
+          {analysis.distance_km}
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Distance (km)</p>
+      </div>
 
-      {/* Map */}
-      <div ref={mapContainer} className="rounded-xl shadow-md w-full h-[500px]" />
+      {/* Safety Score */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-14 h-14 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-xl shadow">
+          🛡️
+        </div>
+        <p className={`text-4xl font-bold ${
+          analysis.safety_score > 70
+            ? "text-green-600"
+            : analysis.safety_score > 40
+            ? "text-yellow-600"
+            : "text-red-600"
+        }`}>
+          {analysis.safety_score}
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Safety Score</p>
+      </div>
+
+      {/* Blackspots */}
+      <div className="flex flex-col items-center gap-3">
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl shadow ${
+          analysis.blackspots_detected > 0
+            ? "bg-red-200 dark:bg-red-800"
+            : "bg-green-200 dark:bg-green-800"
+        }`}>
+          ⚠️
+        </div>
+        <p className="text-4xl font-bold text-gray-900 dark:text-white">
+          {analysis.blackspots_detected}
+        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Blackspots</p>
+      </div>
+
+    </div>
+
+    {/* Summary Panel */}
+    <div
+      className={`rounded-2xl p-6 text-center text-lg font-semibold tracking-wide ${
+        analysis.safety_score > 70
+          ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 border border-green-200 dark:border-green-800"
+          : analysis.safety_score > 40
+          ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800"
+          : "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300 border border-red-200 dark:border-red-800"
+      }`}
+    >
+      {analysis.message}
+    </div>
+  </div>
+)}
+
+
+      {/* MAP */}
+      <div ref={mapContainer} className="w-full h-[500px] rounded-xl shadow-md"></div>
     </div>
   );
 };
