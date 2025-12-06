@@ -130,3 +130,4 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",   # 👈 make all APIs public for now
     ],
 }
+MAPBOX_TOKEN = "pk.eyJ1IjoiYWJoaWFiaGluYW5kYW5hMDkiLCJhIjoiY21pc3E3Y3ZrMDB0NTNmc2J6Z2RhZXI4NyJ9.nsB4sflxG_e3KK2DYWwpqg"
